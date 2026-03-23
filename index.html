@@ -8,6 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://unpkg.com/@azure/msal-browser@3.10.0/lib/msal-browser.min.js" async></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <style>
     /* ════════════════════════════════════════════════════════════
        GLOBAL
@@ -1724,14 +1725,17 @@
 
     <!-- Drop zone -->
     <div id="drop-zone" onclick="document.getElementById('file-input').click()">
-      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" />
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv,.pdf,.docx,.doc,.pptx,.ppt,.png,.jpg,.jpeg" />
       <div class="drop-icon">📂</div>
       <div class="drop-title">Drop your file here</div>
       <div class="drop-sub">or click to browse your computer</div>
       <div class="drop-formats">
         <span class="drop-fmt">Excel .xlsx</span>
-        <span class="drop-fmt">Excel .xls</span>
         <span class="drop-fmt">CSV .csv</span>
+        <span class="drop-fmt">PDF .pdf</span>
+        <span class="drop-fmt">Word .docx</span>
+        <span class="drop-fmt">PowerPoint .pptx</span>
+        <span class="drop-fmt">Image .png .jpg</span>
       </div>
     </div>
 
@@ -3817,55 +3821,143 @@ function initImportPage() {
 
 function handleFileSelected(file) {
   const ext = file.name.split('.').pop().toLowerCase();
-  if (!['xlsx','xls','csv'].includes(ext)) {
-    alert('Please upload an Excel (.xlsx, .xls) or CSV file.');
+  const supported = ['xlsx','xls','csv','pdf','docx','doc','pptx','ppt','png','jpg','jpeg'];
+  if (!supported.includes(ext)) {
+    alert('Unsupported file type. Please upload Excel, CSV, PDF, Word, PowerPoint or an image.');
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      let data;
-      if (ext === 'csv') {
-        // Parse CSV manually
-        const text = e.target.result;
-        const rows = text.split('\n').map(r => r.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
-        const headers = rows[0];
-        data = rows.slice(1).filter(r => r.some(c => c)).map(r => {
-          const obj = {};
-          headers.forEach((h,i) => { obj[h] = r[i] || ''; });
-          return obj;
+  const icons = { xlsx:'📊', xls:'📊', csv:'📄', pdf:'📕', docx:'📝', doc:'📝', pptx:'📊', ppt:'📊', png:'🖼️', jpg:'🖼️', jpeg:'🖼️' };
+
+  // Store file for processing
+  importedFileData = { file, ext, name: file.name };
+
+  document.getElementById('file-info-bar').classList.add('show');
+  document.getElementById('fi-name').textContent = file.name;
+  document.getElementById('fi-meta').textContent = `${(file.size/1024).toFixed(0)} KB · ${ext.toUpperCase()} file — ready to analyse`;
+  document.getElementById('fi-icon').textContent = icons[ext] || '📎';
+  document.getElementById('drop-zone').classList.add('has-file');
+  document.getElementById('analyse-btn').classList.add('show');
+  document.getElementById('suggestions-panel').classList.remove('show');
+  document.getElementById('ai-status').classList.remove('show');
+}
+
+// ── File content extractors ───────────────────────────────────
+
+async function extractFileContent(fileData) {
+  const { file, ext } = fileData;
+
+  // Excel / CSV — extract as structured text
+  if (['xlsx','xls','csv'].includes(ext)) {
+    return await extractSpreadsheet(file, ext);
+  }
+
+  // Word — extract text with mammoth
+  if (['docx','doc'].includes(ext)) {
+    return await extractWord(file);
+  }
+
+  // PowerPoint — extract XML text
+  if (['pptx','ppt'].includes(ext)) {
+    return await extractPowerPoint(file);
+  }
+
+  // PDF or image — convert to base64 for Claude vision
+  if (['pdf','png','jpg','jpeg'].includes(ext)) {
+    return await extractAsBase64(file, ext);
+  }
+
+  throw new Error('Unsupported file type');
+}
+
+async function extractSpreadsheet(file, ext) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        let headers, rows;
+        if (ext === 'csv') {
+          const text = e.target.result;
+          rows = text.split('\n').map(r => r.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
+          headers = rows[0];
+          const data = rows.slice(1).filter(r => r.some(c => c)).map(r => {
+            const obj = {}; headers.forEach((h,i) => { obj[h] = r[i]||''; }); return obj;
+          });
+          resolve({ type:'spreadsheet', headers, rows: data, sheetName:'Sheet1' });
+        } else {
+          const wb = XLSX.read(e.target.result, { type:'binary' });
+          const wsName = wb.SheetNames[0];
+          const json = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval:'' });
+          const hdrs = json.length > 0 ? Object.keys(json[0]) : [];
+          resolve({ type:'spreadsheet', headers: hdrs, rows: json, sheetName: wsName });
+        }
+      } catch(err) { reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsBinaryString(file);
+  });
+}
+
+async function extractWord(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async e => {
+      try {
+        const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+        resolve({ type:'text', content: result.value, format:'Word document' });
+      } catch(err) { reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function extractPowerPoint(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        // Extract text from PPTX XML using SheetJS zip reader
+        const zip = XLSX.read(e.target.result, { type:'binary' });
+        let text = '';
+        Object.keys(zip.Sheets).forEach(name => {
+          if (name.match(/ppt\/slides\/slide\d+/)) {
+            const sheet = zip.Sheets[name];
+            const vals = XLSX.utils.sheet_to_json(sheet, { header:1, defval:'' });
+            vals.forEach(row => row.forEach(cell => { if (cell) text += cell + ' '; }));
+          }
         });
-        importedFileData = { headers, rows: data, sheetName: 'Sheet1' };
-      } else {
-        // Parse Excel with SheetJS
-        const wb = XLSX.read(e.target.result, { type: 'binary' });
-        const wsName = wb.SheetNames[0];
-        const ws = wb.Sheets[wsName];
-        const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
-        const headers = json.length > 0 ? Object.keys(json[0]) : [];
-        importedFileData = { headers, rows: json, sheetName: wsName };
-      }
+        // Fallback: scan all files for text nodes
+        if (!text.trim()) {
+          Object.keys(zip.files || {}).forEach(name => {
+            if (name.includes('slides/slide') && name.endsWith('.xml')) {
+              const content = zip.files[name].asText ? zip.files[name].asText() : '';
+              const matches = content.match(/<a:t[^>]*>([^<]+)<\/a:t>/g) || [];
+              matches.forEach(m => { text += m.replace(/<[^>]+>/g,'') + ' '; });
+            }
+          });
+        }
+        resolve({ type:'text', content: text.trim() || 'Could not extract text from PowerPoint', format:'PowerPoint presentation' });
+      } catch(err) { reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsBinaryString(file);
+  });
+}
 
-      // Show file info
-      const bar = document.getElementById('file-info-bar');
-      bar.classList.add('show');
-      document.getElementById('fi-name').textContent = file.name;
-      document.getElementById('fi-meta').textContent =
-        `${importedFileData.rows.length.toLocaleString()} rows · ${importedFileData.headers.length} columns · Sheet: ${importedFileData.sheetName}`;
-      document.getElementById('fi-icon').textContent = ext === 'csv' ? '📄' : '📊';
-      document.getElementById('drop-zone').classList.add('has-file');
-      document.getElementById('analyse-btn').classList.add('show');
-
-      // Clear old suggestions
-      document.getElementById('suggestions-panel').classList.remove('show');
-      document.getElementById('ai-status').classList.remove('show');
-
-    } catch(err) {
-      alert('Could not read file: ' + err.message);
-    }
-  };
-  reader.readAsBinaryString(file);
+async function extractAsBase64(file, ext) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const base64 = e.target.result.split(',')[1];
+      const mediaType = ext === 'pdf' ? 'application/pdf'
+        : ext === 'png' ? 'image/png'
+        : 'image/jpeg';
+      resolve({ type:'base64', base64, mediaType, format: ext.toUpperCase() });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 function clearImport() {
@@ -3884,8 +3976,8 @@ function clearImport() {
 async function analyseFile() {
   if (!importedFileData) return;
 
-  const btn    = document.getElementById('analyse-btn');
-  const status = document.getElementById('ai-status');
+  const btn        = document.getElementById('analyse-btn');
+  const status     = document.getElementById('ai-status');
   const statusText = document.getElementById('ai-status-text');
 
   btn.disabled = true;
@@ -3894,87 +3986,73 @@ async function analyseFile() {
   document.getElementById('suggestions-panel').classList.remove('show');
 
   try {
-    // Build a sample of the data to send to Claude
-    const { headers, rows } = importedFileData;
-    const sampleRows = rows.slice(0, 8);
+    statusText.textContent = 'Extracting content…';
+    const extracted = await extractFileContent(importedFileData);
 
-    // Build column summaries
-    const colSummaries = headers.map(h => {
-      const vals = rows.slice(0, 20).map(r => r[h]).filter(v => v !== '' && v !== null && v !== undefined);
-      const numeric = vals.filter(v => !isNaN(parseFloat(String(v).replace(/[£,$,]/g,'')))).length;
-      const sample  = vals.slice(0, 4).join(', ');
-      return `- "${h}" (${numeric > vals.length*0.6 ? 'numeric' : 'text'}, samples: ${sample || 'empty'})`;
-    }).join('\n');
-
-    // Build metric reference list
-    const ppnMetrics = METRICS.filter(m => !NOT_APPLICABLE.has(m.id))
+    const ppnMetrics  = METRICS.filter(m => !NOT_APPLICABLE.has(m.id))
       .map(m => `PPN:${m.id} — ${m.label} (unit: ${m.unit})`).join('\n');
     const tomsMetrics = TOMS_MEASURES
       .map(m => `TOMS:${m.id} — ${m.label} (unit: ${m.unit})`).join('\n');
 
     statusText.textContent = 'Sending to Claude AI for analysis…';
 
-    const prompt = `You are a social value data analyst. A user has uploaded a spreadsheet and wants to know which columns map to social value metrics.
+    let messages;
 
-FILE: "${importedFileData.sheetName}" — ${rows.length} rows, ${headers.length} columns
-
-COLUMNS AND SAMPLE DATA:
-${colSummaries}
-
-AVAILABLE METRICS:
-${ppnMetrics}
-${tomsMetrics}
-
-For each column that could plausibly map to a social value metric, suggest the best match. For numeric columns, also calculate the suggested VALUE by summing or counting the sample data appropriately.
-
-Respond ONLY with a valid JSON array. Each item must have:
-{
-  "columnName": "exact column header",
-  "metricId": "e.g. 3aii or NT18",
-  "framework": "ppn" or "toms",
-  "confidence": 0-100,
-  "reasoning": "brief explanation of why this column maps to this metric",
-  "operation": "sum" or "count" or "latest" or "average",
-  "suggestedValue": number (calculate from sample data using the operation)
-}
-
-Only include high-quality matches (confidence >= 50). Omit columns with no plausible mapping. Return empty array [] if no matches found.`;
+    if (extracted.type === 'spreadsheet') {
+      const { headers, rows } = extracted;
+      const colSummaries = headers.map(h => {
+        const vals    = rows.slice(0,20).map(r => r[h]).filter(v => v !== '' && v != null);
+        const numeric = vals.filter(v => !isNaN(parseFloat(String(v).replace(/[£,$,]/g,'')))).length;
+        return `- "${h}" (${numeric > vals.length*0.6 ? 'numeric' : 'text'}, samples: ${vals.slice(0,4).join(', ') || 'empty'})`;
+      }).join('\n');
+      importedFileData._parsed = extracted;
+      messages = [{ role:'user', content:
+        `You are a social value data analyst. Analyse this spreadsheet and suggest which columns map to social value metrics.\n\nFILE: "${extracted.sheetName}" — ${rows.length} rows, ${headers.length} columns\n\nCOLUMNS:\n${colSummaries}\n\nMETRICS:\n${ppnMetrics}\n${tomsMetrics}\n\nRespond ONLY with a JSON array:\n[{"columnName":"exact header","metricId":"e.g. 3aii","framework":"ppn or toms","confidence":0-100,"reasoning":"brief explanation","operation":"sum or count or latest or average","suggestedValue":number}]\n\nOnly include confidence >= 50. Return [] if none found.`
+      }];
+    } else if (extracted.type === 'text') {
+      messages = [{ role:'user', content:
+        `You are a social value data analyst. Analyse this ${extracted.format} and identify any social value data.\n\nDOCUMENT:\n${extracted.content.slice(0,6000)}\n\nMETRICS:\n${ppnMetrics}\n${tomsMetrics}\n\nRespond ONLY with a JSON array:\n[{"columnName":"description of what you found","metricId":"e.g. 3aii","framework":"ppn or toms","confidence":0-100,"reasoning":"explanation","operation":"exact","suggestedValue":number}]\n\nOnly include confidence >= 50. Return [] if none found.`
+      }];
+    } else if (extracted.type === 'base64') {
+      const isPdf = extracted.mediaType === 'application/pdf';
+      messages = [{ role:'user', content: [
+        { type: isPdf ? 'document' : 'image', source: { type:'base64', media_type: extracted.mediaType, data: extracted.base64 } },
+        { type: 'text', text: `You are a social value data analyst. Analyse this ${extracted.format} and identify any social value data.\n\nMETRICS:\n${ppnMetrics}\n${tomsMetrics}\n\nRespond ONLY with a JSON array:\n[{"columnName":"description","metricId":"e.g. 3aii","framework":"ppn or toms","confidence":0-100,"reasoning":"explanation","operation":"exact","suggestedValue":number}]\n\nOnly confidence >= 50. Return [] if none.` }
+      ]}];
+    }
 
     const response = await fetch('/.netlify/functions/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }],
-      })
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1500, messages })
     });
 
     if (!response.ok) throw new Error('API error: ' + response.status);
     const apiData = await response.json();
-    const rawText = apiData.content.map(c => c.text || '').join('');
+    const rawText = (apiData.content || []).map(c => c.text || '').join('');
 
-    // Extract JSON
     const jsonMatch = rawText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) throw new Error('No valid suggestions returned');
     importSuggestions = JSON.parse(jsonMatch[0]);
 
-    // Calculate real values from full dataset
-    importSuggestions = importSuggestions.map(s => {
-      const colVals = rows.map(r => {
-        const raw = String(r[s.columnName] || '').replace(/[£,$, ]/g,'');
-        return parseFloat(raw);
-      }).filter(v => !isNaN(v));
-
-      let realValue = s.suggestedValue;
-      if (colVals.length > 0) {
-        if (s.operation === 'sum')     realValue = colVals.reduce((a,b)=>a+b,0);
-        if (s.operation === 'count')   realValue = colVals.length;
-        if (s.operation === 'average') realValue = colVals.reduce((a,b)=>a+b,0) / colVals.length;
-        if (s.operation === 'latest')  realValue = colVals[colVals.length-1];
-      }
-      return { ...s, realValue: Math.round(realValue * 100) / 100, accepted: true };
-    });
+    if (extracted.type === 'spreadsheet') {
+      importSuggestions = importSuggestions.map(s => {
+        const colVals = extracted.rows.map(r => {
+          const raw = String(r[s.columnName] || '').replace(/[£,$, ]/g,'');
+          return parseFloat(raw);
+        }).filter(v => !isNaN(v));
+        let rv = s.suggestedValue;
+        if (colVals.length > 0) {
+          if (s.operation==='sum')     rv = colVals.reduce((a,b)=>a+b,0);
+          if (s.operation==='count')   rv = colVals.length;
+          if (s.operation==='average') rv = colVals.reduce((a,b)=>a+b,0)/colVals.length;
+          if (s.operation==='latest')  rv = colVals[colVals.length-1];
+        }
+        return { ...s, realValue: Math.round(rv*100)/100, accepted:true };
+      });
+    } else {
+      importSuggestions = importSuggestions.map(s => ({ ...s, realValue: s.suggestedValue||0, accepted:true }));
+    }
 
     status.classList.remove('show');
     btn.disabled = false;
@@ -3983,11 +4061,9 @@ Only include high-quality matches (confidence >= 50). Omit columns with no plaus
   } catch(err) {
     status.classList.remove('show');
     btn.disabled = false;
-    statusText.textContent = '';
-    alert('Analysis failed: ' + err.message + '\n\nMake sure ANTHROPIC_API_KEY is set in your Netlify environment variables (Site settings → Environment variables).');
+    alert('Analysis failed: ' + err.message + '\n\nMake sure ANTHROPIC_API_KEY is set in Netlify environment variables.');
   }
 }
-
 // ── Render suggestions ────────────────────────────────────────
 
 function renderSuggestions() {
