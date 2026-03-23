@@ -3900,14 +3900,23 @@ async function extractSpreadsheet(file, ext) {
 
 async function extractWord(file) {
   return new Promise((resolve, reject) => {
+    if (typeof mammoth === 'undefined') {
+      reject(new Error('Word document library not loaded yet — please try again in a moment'));
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async e => {
       try {
         const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
-        resolve({ type:'text', content: result.value, format:'Word document' });
-      } catch(err) { reject(err); }
+        const content = result.value || '';
+        if (!content.trim()) {
+          resolve({ type:'text', content:'(Document appears to be empty or could not be read)', format:'Word document' });
+        } else {
+          resolve({ type:'text', content, format:'Word document' });
+        }
+      } catch(err) { reject(new Error('Could not read Word document: ' + err.message)); }
     };
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error('Could not read file'));
     reader.readAsArrayBuffer(file);
   });
 }
@@ -3988,6 +3997,10 @@ async function analyseFile() {
   try {
     statusText.textContent = 'Extracting content…';
     const extracted = await extractFileContent(importedFileData);
+
+    if (!extracted) throw new Error('File extraction returned no data');
+    if (extracted.type === 'text' && !extracted.content) throw new Error('Could not extract text from document');
+    if (extracted.type === 'spreadsheet' && !extracted.headers?.length) throw new Error('No columns found in spreadsheet');
 
     const ppnMetrics  = METRICS.filter(m => !NOT_APPLICABLE.has(m.id))
       .map(m => `PPN:${m.id} — ${m.label} (unit: ${m.unit})`).join('\n');
