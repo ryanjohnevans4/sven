@@ -269,73 +269,6 @@
     #admin-btn:hover { border-color: var(--red); color: var(--white); }
     #admin-btn.unlocked { border-color: var(--red); color: var(--red); background: rgba(229,0,25,0.08); }
     #admin-btn svg { width: 14px; height: 14px; }
-
-    /* ── PERIOD SELECTOR ── */
-    #period-selector {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 12px; border-radius: 6px;
-      border: 1.5px solid rgba(255,255,255,0.15);
-      background: transparent; cursor: pointer;
-      font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600;
-      color: rgba(255,255,255,0.7); transition: all 0.2s; position: relative;
-    }
-    #period-selector:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
-    #period-selector.viewing-history { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.08); }
-    #period-selector svg { width: 12px; height: 12px; flex-shrink: 0; }
-
-    #period-dropdown {
-      display: none; position: absolute; top: calc(100% + 6px); right: 0;
-      background: #1C1C1E; border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      min-width: 220px; z-index: 200; overflow: hidden;
-    }
-    #period-dropdown.open { display: block; }
-    .period-dropdown-header {
-      padding: 10px 14px; font-size: 9px; font-weight: 700;
-      color: rgba(255,255,255,0.3); letter-spacing: 0.12em; text-transform: uppercase;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-    }
-    .period-option {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px; cursor: pointer; transition: background 0.15s;
-      font-size: 12px; color: rgba(255,255,255,0.7);
-    }
-    .period-option:hover { background: rgba(255,255,255,0.06); color: var(--white); }
-    .period-option.active { color: var(--white); background: rgba(229,0,25,0.1); }
-    .period-option-name { font-weight: 600; }
-    .period-option-status {
-      font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 2px 7px; border-radius: 10px;
-    }
-    .period-option-status.active { background: rgba(34,197,94,0.15); color: #22c55e; }
-    .period-option-status.closed { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35); }
-    .period-dropdown-footer {
-      padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.07);
-    }
-    .period-new-btn {
-      width: 100%; padding: 8px; border-radius: 6px; border: 1px dashed rgba(255,255,255,0.2);
-      background: transparent; color: rgba(255,255,255,0.4); font-family: 'Montserrat', sans-serif;
-      font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s;
-    }
-    .period-new-btn:hover { border-color: var(--red); color: var(--red); }
-
-    /* ── PERIOD BANNER (viewing history) ── */
-    #period-history-banner {
-      display: none; align-items: center; gap: 10px;
-      background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
-      border-radius: 8px; padding: 10px 16px; margin-bottom: 24px;
-      font-size: 12px; font-weight: 600; color: #b45309;
-    }
-    #period-history-banner.show { display: flex; }
-
-    /* ── CLOSE PERIOD MODAL ── */
-    #close-period-modal .modal { max-width: 420px; }
-    #close-period-modal .modal { border-top: 4px solid #f59e0b; }
-
-    /* ── FRAMEWORK FILTER ── */
-    .framework-filter {
-      display: flex; gap: 8px; margin-bottom: 24px;
-    }
     .fw-btn {
       padding: 7px 16px; border-radius: 6px; border: 1.5px solid var(--t-light-grey);
       background: transparent; color: var(--t-mid-grey); font-family: 'Montserrat', sans-serif;
@@ -1178,21 +1111,7 @@
         <div id="t-topbar-sub">Social Value Evaluation Navigator</div>
       </div>
     </div>
-    <div id="t-topbar-right">
-      <!-- Period selector -->
-      <div id="period-selector" onclick="togglePeriodDropdown()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span id="period-selector-label">Loading…</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-        <div id="period-dropdown">
-          <div class="period-dropdown-header">Reporting Years</div>
-          <div id="period-options-list"></div>
-          <div class="period-dropdown-footer">
-            <button class="period-new-btn" onclick="event.stopPropagation();openNewPeriodModal()">+ New Reporting Year</button>
-          </div>
-        </div>
-      </div>
-      <button class="t-map-btn" onclick="switchPage('map')">← UK Nations Map</button>
+    <div id="t-topbar-right"><button class="t-map-btn" onclick="switchPage('map')">← UK Nations Map</button>
       <button class="t-map-btn" onclick="switchPage('toms')">National TOMs →</button>
       <button id="admin-btn" onclick="openPasswordModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -1223,10 +1142,6 @@
         <span class="num" id="sources-num">⚡</span> Data Sources
         <span class="badge" id="badge-sources" style="color:#3ecf8e;">0 live</span>
       </a>
-      <div class="nav-section">Reporting</div>
-      <a class="nav-item" onclick="showSection('periods')">
-        <span class="num">📅</span> Reporting Years
-      </a>
       <div class="ppn-ref"><p><strong>Reference:</strong> PPN 002 Social Value Model<br>Updated 5 March 2025<br>Cabinet Office</p></div>
     </nav>
 
@@ -1238,31 +1153,11 @@
       </div>
 
       <div class="outcome-section visible" id="sec-overview">
-        <!-- History viewing banner -->
-        <div id="period-history-banner">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span id="period-history-text">Viewing historical period</span>
-          <button onclick="switchToActivePeriod()" style="margin-left:auto;font-size:11px;font-weight:700;background:none;border:none;color:#b45309;cursor:pointer;text-decoration:underline;">Return to active year</button>
+        <div class="section-header">
+          <div class="section-label">Dashboard</div>
+          <div class="section-title">PPN 002 — At a Glance</div>
+          <div class="section-mission">All 33 standard reporting metrics from the PPN 002 Social Value Model, tracking Aico's contribution to the UK Government's National Procurement Policy Statement.</div>
         </div>
-
-        <div class="section-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
-          <div>
-            <div class="section-label">Dashboard</div>
-            <div class="section-title">PPN 002 — At a Glance</div>
-            <div class="section-mission">All 33 standard reporting metrics from the PPN 002 Social Value Model, tracking Aico's contribution to the UK Government's National Procurement Policy Statement.</div>
-          </div>
-          <button id="close-year-btn" onclick="openClosePeriodModal()" style="display:none;flex-shrink:0;margin-top:4px;padding:9px 16px;border-radius:6px;border:1.5px solid #f59e0b;background:rgba(245,158,11,0.08);color:#b45309;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.15s;">
-            📋 Close &amp; Archive Year
-          </button>
-        </div>
-
-        <!-- Framework filter -->
-        <div class="framework-filter">
-          <button class="fw-btn active" id="fw-all" onclick="setFrameworkFilter('all')">All</button>
-          <button class="fw-btn ppn" id="fw-ppn" onclick="setFrameworkFilter('ppn')">PPN 002</button>
-          <button class="fw-btn toms" id="fw-toms" onclick="setFrameworkFilter('toms')">National TOMs</button>
-        </div>
-
         <div id="overview-cards"></div>
       </div>
 
@@ -1612,59 +1507,8 @@
         </div>
         <div class="toms-metrics-grid" id="toms-grid-t5"></div>
       </div>
-
-      <!-- ══ REPORTING YEARS ══ -->
-      <div class="outcome-section" id="sec-periods">
-        <div class="section-header">
-          <div class="section-label">Reporting</div>
-          <div class="section-title">Reporting Years</div>
-          <div class="section-mission">Each year captures a snapshot of all PPN 002 and TOMs metrics. Close a year to archive it and start fresh. Historical years are read-only.</div>
-        </div>
-        <div id="periods-list"></div>
-      </div>
-
     </main>
   </div><!-- /toms-body -->
-
-  <!-- CLOSE PERIOD MODAL -->
-  <div class="modal-overlay" id="close-period-modal">
-    <div class="modal" style="max-width:420px;border-top:4px solid #f59e0b;">
-      <div class="modal-top">
-        <div>
-          <div class="modal-code" style="color:#b45309;">⚠ Close Reporting Year</div>
-          <div class="modal-title" id="close-period-title">Close 2025-26?</div>
-        </div>
-        <button class="modal-close" onclick="document.getElementById('close-period-modal').classList.remove('open')">×</button>
-      </div>
-      <p style="font-size:12.5px;color:var(--t-mid-grey);line-height:1.65;margin-bottom:20px;">This will <strong>snapshot all current metric values</strong> for this year and archive it as read-only. A new reporting year will open automatically with manual metrics reset to zero. Live data connections will continue as normal.</p>
-      <div class="form-group">
-        <label class="form-label">New Year Name</label>
-        <input type="text" class="form-input" id="new-period-name-input" placeholder="e.g. 2026-27" />
-      </div>
-      <button class="btn-primary" style="background:#f59e0b;" onclick="closePeriodConfirm()">Archive This Year &amp; Start New</button>
-      <button class="btn-secondary" onclick="document.getElementById('close-period-modal').classList.remove('open')">Cancel</button>
-    </div>
-  </div>
-
-  <!-- NEW PERIOD MODAL -->
-  <div class="modal-overlay" id="new-period-modal">
-    <div class="modal" style="max-width:380px;">
-      <div class="modal-top">
-        <div>
-          <div class="modal-code" style="color:var(--red);">New Reporting Year</div>
-          <div class="modal-title">Create a reporting year</div>
-        </div>
-        <button class="modal-close" onclick="document.getElementById('new-period-modal').classList.remove('open')">×</button>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Year Name</label>
-        <input type="text" class="form-input" id="create-period-name" placeholder="e.g. 2025-26" />
-      </div>
-      <button class="btn-primary" onclick="createNewPeriod()">Create Year</button>
-      <button class="btn-secondary" onclick="document.getElementById('new-period-modal').classList.remove('open')">Cancel</button>
-    </div>
-  </div>
-
   <!-- TOMs EDIT MODAL -->
   <div class="modal-overlay" id="toms-edit-modal">
     <div class="modal" style="border-top:4px solid var(--toms,#0e9e6e);">
@@ -2349,6 +2193,31 @@ function renderGrids() {
   renderOverview();
 }
 
+function renderOverview() {
+  const info = {
+    o1:{num:'1',title:'Fair Work'}, o2:{num:'2',title:'Skills for Growth'},
+    o3:{num:'3',title:'Supply Chains'}, o4:{num:'4',title:'Sustainable Procurement'},
+    o5:{num:'5',title:'Reduce Crime'}, o6:{num:'6',title:'Employment & Training'},
+    o7:{num:'7',title:'Pipeline of Opportunities'}, o8:{num:'8',title:'Wellbeing'},
+  };
+  const el = document.getElementById('overview-cards');
+  if (!el) return;
+  el.innerHTML = Object.entries(info).map(([oc, i]) => {
+    const ms        = METRICS.filter(m => m.outcome === oc);
+    const trackable = ms.filter(m => !NOT_APPLICABLE.has(m.id));
+    const updated   = trackable.filter(m => DATA[m.id].updatedAt || (LIVE_DATA[m.id] && !LIVE_DATA[m.id].error)).length;
+    const withTgt   = trackable.filter(m => DATA[m.id].target > 0).length;
+    const fill      = trackable.length ? Math.round((updated/trackable.length)*100) : 0;
+    const naCount   = ms.length - trackable.length;
+    return `<div class="ov-card" onclick="showSection('${oc}')">
+      <div class="ov-card-num">Outcome ${i.num}</div>
+      <div class="ov-card-title">${i.title}</div>
+      <div class="ov-card-count">${updated}/${trackable.length} updated · ${withTgt} with targets${naCount?` · <span style="color:var(--t-mid-grey)">${naCount} N/A</span>`:''}</div>
+      <div class="ov-progress"><div class="ov-progress-fill" style="width:${fill}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
 
 function showSection(id) {
   document.querySelectorAll('.outcome-section').forEach(s => s.classList.remove('visible'));
@@ -2395,7 +2264,6 @@ function checkPassword() {
 
     renderGrids();
     renderTomsGrids();
-    updatePeriodUI();
   } else {
     document.getElementById('pw-error').style.display = 'block';
     document.getElementById('pw-input').select();
@@ -2425,7 +2293,6 @@ function logout() {
 
   renderGrids();
   renderTomsGrids();
-  updatePeriodUI();
 }
 
 function openEditModal(id) {
@@ -3404,390 +3271,6 @@ async function syncSingle(metricId) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  REPORTING PERIODS
-// ═══════════════════════════════════════════════════════════════
-
-function loadPeriods() {
-  const raw = localStorage.getItem('sven_periods');
-  return raw ? JSON.parse(raw) : [];
-}
-
-function savePeriods(periods) {
-  localStorage.setItem('sven_periods', JSON.stringify(periods));
-}
-
-function getActivePeriodId() {
-  return localStorage.getItem('sven_active_period') || null;
-}
-
-function setActivePeriodId(id) {
-  localStorage.setItem('sven_active_period', id);
-}
-
-// Current period being VIEWED (may differ from active if browsing history)
-let viewingPeriodId = null;
-
-function initPeriods() {
-  let periods = loadPeriods();
-
-  // First run — create the initial period
-  if (periods.length === 0) {
-    const now = new Date();
-    const yr  = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
-    const defaultName = `${yr}-${String(yr + 1).slice(-2)}`;
-    const firstPeriod = {
-      id:        'period_' + Date.now(),
-      name:      defaultName,
-      status:    'active',
-      createdAt: new Date().toISOString(),
-      closedAt:  null,
-      snapshot:  null,
-    };
-    periods = [firstPeriod];
-    savePeriods(periods);
-    setActivePeriodId(firstPeriod.id);
-  }
-
-  // Ensure there's an active period
-  const active = periods.find(p => p.status === 'active');
-  if (active) setActivePeriodId(active.id);
-
-  viewingPeriodId = getActivePeriodId();
-  updatePeriodUI();
-}
-
-function updatePeriodUI() {
-  const periods    = loadPeriods();
-  const activePId  = getActivePeriodId();
-  const isViewing  = viewingPeriodId !== activePId;
-  const viewPeriod = periods.find(p => p.id === viewingPeriodId) || periods.find(p => p.status === 'active');
-
-  // Topbar label
-  const label = document.getElementById('period-selector-label');
-  if (label) {
-    label.textContent = viewPeriod ? viewPeriod.name : '—';
-  }
-
-  // Selector styling
-  const selector = document.getElementById('period-selector');
-  if (selector) selector.classList.toggle('viewing-history', isViewing);
-
-  // History banner
-  const banner = document.getElementById('period-history-banner');
-  const bannerText = document.getElementById('period-history-text');
-  if (banner) banner.classList.toggle('show', isViewing);
-  if (bannerText && viewPeriod) {
-    bannerText.textContent = `Viewing archived year: ${viewPeriod.name} — all metrics are read-only`;
-  }
-
-  // Close year button — only show for active period in admin mode
-  const closeBtn = document.getElementById('close-year-btn');
-  if (closeBtn) closeBtn.style.display = (isAdmin && !isViewing) ? 'flex' : 'none';
-
-  // Populate dropdown
-  const optsList = document.getElementById('period-options-list');
-  if (optsList) {
-    optsList.innerHTML = periods.slice().reverse().map(p => `
-      <div class="period-option ${p.id === viewingPeriodId ? 'active' : ''}" onclick="switchViewPeriod('${p.id}')">
-        <span class="period-option-name">${p.name}</span>
-        <span class="period-option-status ${p.status}">${p.status === 'active' ? 'Active' : 'Archived'}</span>
-      </div>
-    `).join('');
-  }
-
-  // Render periods management page
-  renderPeriodsPage();
-}
-
-function togglePeriodDropdown() {
-  document.getElementById('period-dropdown').classList.toggle('open');
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', e => {
-  const sel = document.getElementById('period-selector');
-  if (sel && !sel.contains(e.target)) {
-    document.getElementById('period-dropdown').classList.remove('open');
-  }
-});
-
-function switchViewPeriod(periodId) {
-  document.getElementById('period-dropdown').classList.remove('open');
-  viewingPeriodId = periodId;
-  updatePeriodUI();
-  loadPeriodData(periodId);
-  renderGrids();
-  renderTomsGrids();
-  showSection('overview');
-}
-
-function switchToActivePeriod() {
-  switchViewPeriod(getActivePeriodId());
-}
-
-// Returns the data to display for a given metric, respecting the viewed period
-function getPeriodData(metricId, isToms) {
-  const activePId = getActivePeriodId();
-  if (viewingPeriodId === activePId) return null; // use live DATA/TOMS_DATA
-
-  const periods = loadPeriods();
-  const period  = periods.find(p => p.id === viewingPeriodId);
-  if (!period || !period.snapshot) return null;
-
-  const store = isToms ? period.snapshot.toms : period.snapshot.ppn;
-  return store?.[metricId] || null;
-}
-
-function loadPeriodData(periodId) {
-  const activePId = getActivePeriodId();
-  if (periodId === activePId) return; // already using live data
-
-  const periods = loadPeriods();
-  const period  = periods.find(p => p.id === periodId);
-  if (!period?.snapshot) return;
-
-  // Override DATA and TOMS_DATA with snapshot values for display
-  // (we restore on switching back to active)
-  Object.entries(period.snapshot.ppn || {}).forEach(([id, val]) => {
-    if (DATA[id]) DATA[id] = { ...DATA[id], ...val };
-  });
-  Object.entries(period.snapshot.toms || {}).forEach(([id, val]) => {
-    if (TOMS_DATA[id]) TOMS_DATA[id] = { ...TOMS_DATA[id], ...val };
-  });
-}
-
-// ── Framework filter ──────────────────────────────────────────
-let activeFramework = 'all';
-
-function setFrameworkFilter(fw) {
-  activeFramework = fw;
-  ['all','ppn','toms'].forEach(f => {
-    const btn = document.getElementById('fw-' + f);
-    if (btn) btn.classList.toggle('active', f === fw);
-  });
-  renderOverview();
-  renderTomsOverview();
-}
-
-// ── Close / Archive Year ───────────────────────────────────────
-function openClosePeriodModal() {
-  const periods    = loadPeriods();
-  const active     = periods.find(p => p.status === 'active');
-  if (!active) return;
-  document.getElementById('close-period-title').textContent = `Archive ${active.name}?`;
-  // Suggest next year name
-  const parts = active.name.match(/(\d{4})-(\d{2,4})/);
-  if (parts) {
-    const nextStart = parseInt(parts[1]) + 1;
-    const nextEnd   = nextStart + 1;
-    document.getElementById('new-period-name-input').value = `${nextStart}-${String(nextEnd).slice(-2)}`;
-  }
-  document.getElementById('close-period-modal').classList.add('open');
-}
-
-function closePeriodConfirm() {
-  const newName = document.getElementById('new-period-name-input').value.trim();
-  if (!newName) { alert('Please enter a name for the new year.'); return; }
-
-  let periods = loadPeriods();
-  const active = periods.find(p => p.status === 'active');
-  if (!active) return;
-
-  // Take snapshot of current values (merge live data into snapshot)
-  const ppnSnap  = {};
-  METRICS.forEach(m => {
-    const live = LIVE_DATA[m.id];
-    ppnSnap[m.id] = {
-      value:     (live && !live.error) ? live.value : DATA[m.id].value,
-      target:    DATA[m.id].target,
-      notes:     DATA[m.id].notes,
-      updatedAt: DATA[m.id].updatedAt,
-    };
-  });
-
-  const tomsSnap = {};
-  TOMS_MEASURES.forEach(m => {
-    const live = TOMS_LIVE_DATA[m.id];
-    tomsSnap[m.id] = {
-      value:     (live && !live.error) ? live.value : TOMS_DATA[m.id].value,
-      target:    TOMS_DATA[m.id].target,
-      notes:     TOMS_DATA[m.id].notes,
-      updatedAt: TOMS_DATA[m.id].updatedAt,
-    };
-  });
-
-  // Archive the current period
-  active.status   = 'closed';
-  active.closedAt = new Date().toISOString();
-  active.snapshot = { ppn: ppnSnap, toms: tomsSnap };
-
-  // Create new period
-  const newPeriod = {
-    id:        'period_' + Date.now(),
-    name:      newName,
-    status:    'active',
-    createdAt: new Date().toISOString(),
-    closedAt:  null,
-    snapshot:  null,
-  };
-  periods.push(newPeriod);
-  savePeriods(periods);
-  setActivePeriodId(newPeriod.id);
-  viewingPeriodId = newPeriod.id;
-
-  // Reset manual metrics to zero for new period
-  METRICS.forEach(m => {
-    const hasLiveSource = !!(METRIC_SOURCES[m.id]);
-    if (!hasLiveSource) DATA[m.id] = { value:0, target:0, notes:'', updatedAt:null, regions:{} };
-  });
-  TOMS_MEASURES.forEach(m => {
-    const hasLiveSource = !!(TOMS_SOURCES[m.id]);
-    if (!hasLiveSource) TOMS_DATA[m.id] = { value:0, target:0, notes:'', updatedAt:null };
-  });
-  saveData(DATA);
-  saveTomsData(TOMS_DATA);
-
-  document.getElementById('close-period-modal').classList.remove('open');
-  updatePeriodUI();
-  renderGrids();
-  renderTomsGrids();
-}
-
-function openNewPeriodModal() {
-  document.getElementById('period-dropdown').classList.remove('open');
-  document.getElementById('new-period-modal').classList.add('open');
-  setTimeout(() => document.getElementById('create-period-name').focus(), 100);
-}
-
-function createNewPeriod() {
-  const name = document.getElementById('create-period-name').value.trim();
-  if (!name) return;
-
-  let periods = loadPeriods();
-  // Mark any existing active as closed first
-  periods.forEach(p => { if (p.status === 'active') p.status = 'closed'; });
-
-  const newPeriod = {
-    id:        'period_' + Date.now(),
-    name,
-    status:    'active',
-    createdAt: new Date().toISOString(),
-    closedAt:  null,
-    snapshot:  null,
-  };
-  periods.push(newPeriod);
-  savePeriods(periods);
-  setActivePeriodId(newPeriod.id);
-  viewingPeriodId = newPeriod.id;
-  document.getElementById('new-period-modal').classList.remove('open');
-  updatePeriodUI();
-}
-
-function renderPeriodsPage() {
-  const el = document.getElementById('periods-list');
-  if (!el) return;
-  const periods = loadPeriods().slice().reverse();
-  const activePId = getActivePeriodId();
-
-  el.innerHTML = periods.map(p => {
-    const isActive   = p.status === 'active';
-    const metricCount = p.snapshot
-      ? Object.values(p.snapshot.ppn||{}).filter(v=>v.value>0).length + Object.values(p.snapshot.toms||{}).filter(v=>v.value>0).length
-      : '—';
-    const closedDate = p.closedAt ? new Date(p.closedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : null;
-    return `
-      <div style="background:var(--white);border-radius:var(--t-radius);box-shadow:var(--t-shadow);padding:20px 22px;margin-bottom:14px;border-left:4px solid ${isActive?'#22c55e':'#DEDEDE'};display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-            <div style="font-size:16px;font-weight:800;color:var(--t-charcoal);">${p.name}</div>
-            <span style="font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;background:${isActive?'rgba(34,197,94,0.12)':'var(--t-bg)'};color:${isActive?'#16a34a':'var(--t-mid-grey)'};">${isActive?'Active':'Archived'}</span>
-          </div>
-          <div style="font-size:11px;color:var(--t-mid-grey);">
-            ${isActive ? 'Currently tracking' : `Archived ${closedDate} · ${metricCount} metrics with data`}
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          ${!isActive ? `<button onclick="switchViewPeriod('${p.id}')" style="padding:7px 14px;border-radius:6px;border:1.5px solid var(--t-light-grey);background:transparent;color:var(--t-mid-grey);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;">View</button>` : ''}
-          ${isActive && isAdmin ? `<button onclick="openClosePeriodModal()" style="padding:7px 14px;border-radius:6px;border:1.5px solid #f59e0b;background:rgba(245,158,11,0.08);color:#b45309;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Archive &amp; New Year</button>` : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ── Override renderOverview to respect framework filter + TOMs ──
-function renderOverview() {
-  const themeInfo = {
-    o1:{num:'1',title:'Fair Work'}, o2:{num:'2',title:'Skills for Growth'},
-    o3:{num:'3',title:'Supply Chains'}, o4:{num:'4',title:'Sustainable Procurement'},
-    o5:{num:'5',title:'Reduce Crime'}, o6:{num:'6',title:'Employment & Training'},
-    o7:{num:'7',title:'Pipeline of Opportunities'}, o8:{num:'8',title:'Wellbeing'},
-  };
-  const tomsInfo = {
-    t1:{num:'1',title:'Jobs, Skills & Employment'}, t2:{num:'2',title:'Growth & Responsible Business'},
-    t3:{num:'3',title:'Healthier, Safer Communities'}, t4:{num:'4',title:'Environment & Decarbonisation'},
-    t5:{num:'5',title:'Social Innovation'},
-  };
-
-  const isViewingHistory = viewingPeriodId !== getActivePeriodId();
-  let html = '';
-
-  // PPN 002 section
-  if (activeFramework !== 'toms') {
-    if (activeFramework === 'all') html += `<div style="font-size:10px;font-weight:700;color:var(--red);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--t-light-grey);">PPN 002 — 8 Outcomes</div>`;
-    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;margin-bottom:${activeFramework==='all'?'32px':'0'};">`;
-    html += Object.entries(themeInfo).map(([oc, i]) => {
-      const ms       = METRICS.filter(m => m.outcome === oc);
-      const trackable = ms.filter(m => !NOT_APPLICABLE.has(m.id));
-      const updated  = trackable.filter(m => {
-        const d = isViewingHistory ? (getPeriodData(m.id, false) || DATA[m.id]) : DATA[m.id];
-        return d.updatedAt || (LIVE_DATA[m.id]&&!LIVE_DATA[m.id].error);
-      }).length;
-      const withTgt  = trackable.filter(m => DATA[m.id].target > 0).length;
-      const fill     = trackable.length ? Math.round((updated/trackable.length)*100) : 0;
-      const naCount  = ms.length - trackable.length;
-      return `<div class="ov-card" onclick="showSection('${oc}')">
-        <div class="ov-card-num">Outcome ${i.num}</div>
-        <div class="ov-card-title">${i.title}</div>
-        <div class="ov-card-count">${updated}/${trackable.length} updated · ${withTgt} with targets${naCount?` · <span style="color:var(--t-mid-grey)">${naCount} N/A</span>`:''}</div>
-        <div class="ov-progress"><div class="ov-progress-fill" style="width:${fill}%"></div></div>
-      </div>`;
-    }).join('');
-    html += '</div>';
-  }
-
-  // TOMs section
-  if (activeFramework !== 'ppn') {
-    if (activeFramework === 'all') html += `<div style="font-size:10px;font-weight:700;color:#0e9e6e;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--t-light-grey);">National TOMs — 5 Themes</div>`;
-    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;">`;
-    html += Object.entries(tomsInfo).map(([th, i]) => {
-      const ms      = TOMS_MEASURES.filter(m => m.theme === th);
-      const updated = ms.filter(m => {
-        const d = isViewingHistory ? (getPeriodData(m.id, true) || TOMS_DATA[m.id]) : TOMS_DATA[m.id];
-        return d.updatedAt || (TOMS_LIVE_DATA[m.id]&&!TOMS_LIVE_DATA[m.id].error);
-      }).length;
-      const withTgt = ms.filter(m => TOMS_DATA[m.id].target > 0).length;
-      const fill    = ms.length ? Math.round((updated/ms.length)*100) : 0;
-      const core    = ms.filter(m => m.type==='core').length;
-      return `<div class="toms-ov-card" style="background:var(--white);border-radius:var(--t-radius);box-shadow:var(--t-shadow);padding:20px;border-left:4px solid #0e9e6e;cursor:pointer;transition:all 0.18s;" onclick="switchPage('toms');showTomsSection('toms-${th}')">
-        <div style="font-size:10px;font-weight:700;color:#0e9e6e;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Theme ${i.num}</div>
-        <div style="font-size:14px;font-weight:700;color:var(--t-charcoal);margin-bottom:8px;">${i.title}</div>
-        <div style="font-size:12px;color:var(--t-mid-grey);">${updated}/${ms.length} updated · ${withTgt} with targets · ${core} core</div>
-        <div style="height:4px;background:var(--t-bg);border-radius:4px;margin-top:12px;overflow:hidden;"><div style="height:100%;background:#0e9e6e;border-radius:4px;width:${fill}%"></div></div>
-      </div>`;
-    }).join('');
-    html += '</div>';
-  }
-
-  const container = document.getElementById('overview-cards');
-  if (container) container.innerHTML = html;
-}
-
-// Close period modal backdrop
-document.getElementById('close-period-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('close-period-modal')) document.getElementById('close-period-modal').classList.remove('open');
-});
 document.getElementById('new-period-modal').addEventListener('click', e => {
   if (e.target === document.getElementById('new-period-modal')) document.getElementById('new-period-modal').classList.remove('open');
 });
@@ -4232,7 +3715,6 @@ function applyAllAccepted() {
 loadMap();
 renderGrids();
 renderTomsGrids();
-initPeriods();
 initImportPage();
 
 // Pre-fill Supabase UI fields and mark as connected
