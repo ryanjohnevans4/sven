@@ -4027,9 +4027,21 @@ async function analyseFile() {
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1500, messages })
     });
 
-    if (!response.ok) throw new Error('API error: ' + response.status);
+    if (!response.ok) {
+      const errText = await response.text().catch(()=>'');
+      throw new Error(`API error: ${response.status} — ${errText.slice(0,100)}`);
+    }
     const apiData = await response.json();
-    const rawText = (apiData.content || []).map(c => c.text || '').join('');
+
+    // Handle both direct Anthropic response and wrapped response
+    let rawText = '';
+    if (apiData.content && Array.isArray(apiData.content)) {
+      rawText = apiData.content.map(c => c.text || '').join('');
+    } else if (apiData.error) {
+      throw new Error('Claude API error: ' + (apiData.error.message || JSON.stringify(apiData.error)));
+    } else {
+      throw new Error('Unexpected response format: ' + JSON.stringify(apiData).slice(0,100));
+    }
 
     const jsonMatch = rawText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) throw new Error('No valid suggestions returned');
