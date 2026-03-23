@@ -1,0 +1,13 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+```
+
+So your final structure is:
+```
+sven/
+├── netlify.toml
+├── aico-social-value.html
+└── netlify/
+    └── functions/
+        └── analyse.js
