@@ -1671,6 +1671,25 @@ let tomsEditingId = null;
 // ─────────────────────────────────────────────────────────────
 
 function renderTomsCard(m) {
+  // Check if marked N/A
+  const isNA = TOMS_NA.has(m.id);
+  if (isNA) {
+    return `<div class="toms-card" style="opacity:0.45;pointer-events:none;position:relative;">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#DEDEDE;"></div>
+      <div style="padding:16px 18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:700;color:#6B6B6B;letter-spacing:0.1em;">${m.id}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:#F4F4F6;color:#6B6B6B;">N/A</span>
+            ${isAdmin ? `<button onclick="event.stopPropagation();toggleNA('${m.id}', true)" style="pointer-events:all;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(34,197,94,0.4);background:rgba(34,197,94,0.08);color:#16a34a;cursor:pointer;font-family:'Montserrat',sans-serif;">↩ Re-enable</button>` : ''}
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#4A4B4C;margin-bottom:4px;">${m.label}</div>
+        <div style="font-size:11px;color:#6B6B6B;">Not tracked</div>
+      </div>
+    </div>`;
+  }
+
   // Merge live data if available
   const stored = TOMS_DATA[m.id];
   const live   = TOMS_LIVE_DATA[m.id];
@@ -1775,6 +1794,7 @@ function renderTomsCard(m) {
         <div class="toms-card-footer">
           <div><span class="toms-status-dot ${d.target>0?(isOver?'on-track':'at-risk'):'no-target'}"></span>${updatedStr}</div>
           ${badgeHtml}
+          ${isAdmin ? `<button onclick="event.stopPropagation();toggleNA('${m.id}', true)" style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(14,158,110,0.25);background:rgba(14,158,110,0.05);color:#0e9e6e;cursor:pointer;font-family:'Montserrat',sans-serif;margin-left:auto;">Mark N/A</button>` : ''}
         </div>
         ${d.notes && !isLive ? `<div class="toms-notes">📝 ${d.notes}</div>` : ''}
       </div>
@@ -2292,8 +2312,36 @@ document.getElementById('edit-modal').addEventListener('click', e => { if (e.tar
 //  3. Change type to 'supabase', 'dataverse', or 'rest'
 // ═══════════════════════════════════════════════════════════════
 
-// Metrics that are not applicable to Aico — shown greyed out, not editable
-const NOT_APPLICABLE = new Set(['1ai', '3aiv', '4aiv', '5ai', '6civ']);
+// Metrics that are not applicable — stored in localStorage so admin can toggle
+const NA_DEFAULTS     = ['1ai', '3aiv', '4aiv', '5ai', '6civ'];
+const NA_STORE_KEY    = 'sven_not_applicable';
+const TOMS_NA_KEY     = 'sven_toms_not_applicable';
+
+function loadNA() {
+  try { return new Set(JSON.parse(localStorage.getItem(NA_STORE_KEY)) || NA_DEFAULTS); }
+  catch(e) { return new Set(NA_DEFAULTS); }
+}
+function loadTomsNA() {
+  try { return new Set(JSON.parse(localStorage.getItem(TOMS_NA_KEY)) || []); }
+  catch(e) { return new Set(); }
+}
+function saveNA()     { localStorage.setItem(NA_STORE_KEY, JSON.stringify([...NOT_APPLICABLE])); }
+function saveTomsNA() { localStorage.setItem(TOMS_NA_KEY,  JSON.stringify([...TOMS_NA])); }
+
+function toggleNA(id, isToms) {
+  if (isToms) {
+    if (TOMS_NA.has(id)) TOMS_NA.delete(id); else TOMS_NA.add(id);
+    saveTomsNA();
+    renderTomsGrids();
+  } else {
+    if (NOT_APPLICABLE.has(id)) NOT_APPLICABLE.delete(id); else NOT_APPLICABLE.add(id);
+    saveNA();
+    renderGrids();
+  }
+}
+
+let NOT_APPLICABLE = loadNA();
+let TOMS_NA        = loadTomsNA();
 
 const CONNECTION_CONFIG = {
   supabase: {
@@ -3061,7 +3109,7 @@ function renderCard(metric) {
   const isNA = NOT_APPLICABLE.has(metric.id);
   const d = getDisplayData(metric.id);
 
-  // Not-applicable: render greyed out, no interaction
+  // Not-applicable: render greyed out, with admin toggle
   if (isNA) {
     return `
       <div class="metric-card not-applicable">
@@ -3069,7 +3117,10 @@ function renderCard(metric) {
         <div class="metric-body">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <div class="metric-code">${metric.id}</div>
-            <span class="na-badge">Not Applicable</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="na-badge">Not Applicable</span>
+              ${isAdmin ? `<button onclick="toggleNA('${metric.id}', false)" style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(34,197,94,0.4);background:rgba(34,197,94,0.08);color:#16a34a;cursor:pointer;font-family:'Montserrat',sans-serif;">↩ Re-enable</button>` : ''}
+            </div>
           </div>
           <div class="metric-label">${metric.label}</div>
           <div class="metric-desc">${metric.desc}</div>
@@ -3163,6 +3214,7 @@ function renderCard(metric) {
             ${isLive ? '← live data' : timeAgo(d.updatedAt)}
           </div>
           ${badgeHtml}
+          ${isAdmin ? `<button onclick="event.stopPropagation();toggleNA('${metric.id}', false)" style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(229,0,25,0.25);background:rgba(229,0,25,0.05);color:var(--red);cursor:pointer;font-family:'Montserrat',sans-serif;margin-left:auto;">Mark N/A</button>` : ''}
         </div>
         ${d.notes&&!isLive?`<div class="metric-notes" title="${d.notes}">📝 ${d.notes}</div>`:''}
       </div>
