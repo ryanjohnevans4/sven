@@ -7,8 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://unpkg.com/@azure/msal-browser@3.10.0/lib/msal-browser.min.js" async></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
   <style>
     /* ════════════════════════════════════════════════════════════
        GLOBAL
@@ -592,12 +590,6 @@
     /* ════════════════════════════════════════════════════════════
        DATA IMPORT PAGE
     ════════════════════════════════════════════════════════════ */
-    #page-import {
-      background: #F4F4F6;
-      color: #1C1C1E;
-      overflow-y: auto;
-      flex-direction: column;
-    }
     #import-header {
       height: 64px; flex-shrink: 0;
       background: #1C1C1E;
@@ -926,7 +918,6 @@
       <a class="m-pill active" onclick="switchPage('map')">UK Nations Map</a>
       <a class="m-pill" onclick="switchPage('tracker')">PPN 002 Tracker</a>
       <a class="m-pill" onclick="switchPage('toms')">National TOMs</a>
-      <a class="m-pill" onclick="switchPage('import')">📂 Data Import</a>
     </nav>
   </header>
 
@@ -1540,84 +1531,6 @@
 
 </div><!-- /page-toms -->
 
-<!-- ════════════════════════════════════════════════════════════
-     PAGE: DATA IMPORT
-════════════════════════════════════════════════════════════ -->
-<div id="page-import" class="page">
-  <div id="import-header">
-    <div id="import-header-brand">
-      <img src="https://www.aico.co.uk/wp-content/uploads/2026/03/Aico-Logo-White-with-red-dot.png" style="height:28px;width:auto;display:block;" alt="Aico" />
-      <div style="width:1px;height:28px;background:rgba(255,255,255,0.1);"></div>
-      <div>
-        <div id="import-header-title">Data Import</div>
-        <div id="import-header-sub">AI-Powered Metric Mapping</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="import-back-btn" onclick="switchPage('map')">← UK Nations Map</button>
-      <button class="import-back-btn" onclick="switchPage('tracker')">PPN 002 Tracker</button>
-      <button class="import-back-btn" onclick="switchPage('toms')">National TOMs</button>
-    </div>
-  </div>
-
-  <div id="import-body">
-    <div style="margin-bottom:32px;">
-      <div style="font-size:10px;font-weight:700;color:var(--red);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:8px;">AI-Powered Import</div>
-      <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:#1C1C1E;margin-bottom:10px;">Upload a spreadsheet, let AI do the mapping</div>
-      <p style="font-size:13px;color:#6B6B6B;line-height:1.7;max-width:620px;">Drop any Excel or CSV file — spend data, HR reports, environmental records. Claude will analyse the columns, identify which social value metrics they relate to, and suggest where the data should go. You review and approve each suggestion.</p>
-    </div>
-
-    <!-- Drop zone -->
-    <div id="drop-zone" onclick="document.getElementById('file-input').click()">
-      <input type="file" id="file-input" accept=".xlsx,.xls,.csv,.pdf,.docx,.doc,.pptx,.ppt,.png,.jpg,.jpeg" />
-      <div class="drop-icon">📂</div>
-      <div class="drop-title">Drop your file here</div>
-      <div class="drop-sub">or click to browse your computer</div>
-      <div class="drop-formats">
-        <span class="drop-fmt">Excel .xlsx</span>
-        <span class="drop-fmt">CSV .csv</span>
-        <span class="drop-fmt">PDF .pdf</span>
-        <span class="drop-fmt">Word .docx</span>
-        <span class="drop-fmt">PowerPoint .pptx</span>
-        <span class="drop-fmt">Image .png .jpg</span>
-      </div>
-    </div>
-
-    <!-- File info bar -->
-    <div id="file-info-bar">
-      <div class="fi-icon" id="fi-icon">📊</div>
-      <div>
-        <div class="fi-name" id="fi-name">filename.xlsx</div>
-        <div class="fi-meta" id="fi-meta">Loading…</div>
-      </div>
-      <button class="fi-clear" onclick="clearImport()">✕ Remove</button>
-    </div>
-
-    <!-- Analyse button -->
-    <button id="analyse-btn" onclick="analyseFile()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      Analyse with AI &amp; Suggest Mappings
-    </button>
-
-    <!-- AI status -->
-    <div id="ai-status">
-      <div class="ai-spinner"></div>
-      <span id="ai-status-text">Reading file…</span>
-    </div>
-
-    <!-- Suggestions -->
-    <div id="suggestions-panel">
-      <div class="suggestions-header">
-        <div>
-          <div class="suggestions-title">AI Suggestions</div>
-          <div class="suggestions-sub" id="suggestions-sub">Review each suggestion and accept or reject</div>
-        </div>
-        <button class="apply-all-btn" onclick="applyAllAccepted()">Apply All Accepted</button>
-      </div>
-      <div id="suggestions-list"></div>
-    </div>
-  </div>
-</div><!-- /page-import -->
 
 <!-- ══════════════════════════════════════════════════════════
      MICROSOFT SIGN-IN PROMPT MODAL
@@ -1652,14 +1565,12 @@ function switchPage(name) {
   document.getElementById('page-map').classList.toggle('active', name === 'map');
   document.getElementById('page-tracker').classList.toggle('active', name === 'tracker');
   document.getElementById('page-toms').classList.toggle('active', name === 'toms');
-  document.getElementById('page-import').classList.toggle('active', name === 'import');
-  document.querySelectorAll('.m-pill').forEach(p => {
+    document.querySelectorAll('.m-pill').forEach(p => {
     const t = p.textContent.trim().toLowerCase();
     p.classList.toggle('active',
       (name === 'map'     && t.includes('map'))     ||
       (name === 'tracker' && t.includes('ppn'))     ||
-      (name === 'toms'    && t.includes('toms'))    ||
-      (name === 'import'  && t.includes('import'))
+      (name === 'toms'    && t.includes('toms'))
     );
   });
   if (name === 'tracker') renderGrids();
@@ -3285,21 +3196,7 @@ let importSuggestions = [];    // AI suggestions array
 // ── File handling ─────────────────────────────────────────────
 
 function initImportPage() {
-  const dz = document.getElementById('drop-zone');
-  const fi = document.getElementById('file-input');
-  if (!dz || !fi) return;
-
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-  dz.addEventListener('drop', e => {
-    e.preventDefault();
-    dz.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file) handleFileSelected(file);
-  });
-  fi.addEventListener('change', e => {
-    if (e.target.files[0]) handleFileSelected(e.target.files[0]);
-  });
+  // Handlers are inline on the HTML elements — nothing needed here
 }
 
 function handleFileSelected(file) {
@@ -3323,144 +3220,6 @@ function handleFileSelected(file) {
   document.getElementById('analyse-btn').classList.add('show');
   document.getElementById('suggestions-panel').classList.remove('show');
   document.getElementById('ai-status').classList.remove('show');
-}
-
-// ── File content extractors ───────────────────────────────────
-
-async function extractFileContent(fileData) {
-  const { file, ext } = fileData;
-
-  // Excel / CSV — extract as structured text
-  if (['xlsx','xls','csv'].includes(ext)) {
-    return await extractSpreadsheet(file, ext);
-  }
-
-  // Word — extract text with mammoth
-  if (['docx','doc'].includes(ext)) {
-    return await extractWord(file);
-  }
-
-  // PowerPoint — extract XML text
-  if (['pptx','ppt'].includes(ext)) {
-    return await extractPowerPoint(file);
-  }
-
-  // PDF or image — convert to base64 for Claude vision
-  if (['pdf','png','jpg','jpeg'].includes(ext)) {
-    return await extractAsBase64(file, ext);
-  }
-
-  throw new Error('Unsupported file type');
-}
-
-async function extractSpreadsheet(file, ext) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        let headers, rows;
-        if (ext === 'csv') {
-          const text = e.target.result;
-          rows = text.split('\n').map(r => r.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
-          headers = rows[0];
-          const data = rows.slice(1).filter(r => r.some(c => c)).map(r => {
-            const obj = {}; headers.forEach((h,i) => { obj[h] = r[i]||''; }); return obj;
-          });
-          resolve({ type:'spreadsheet', headers, rows: data, sheetName:'Sheet1' });
-        } else {
-          const wb = XLSX.read(e.target.result, { type:'binary' });
-          const wsName = wb.SheetNames[0];
-          const json = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval:'' });
-          const hdrs = json.length > 0 ? Object.keys(json[0]) : [];
-          resolve({ type:'spreadsheet', headers: hdrs, rows: json, sheetName: wsName });
-        }
-      } catch(err) { reject(err); }
-    };
-    reader.onerror = reject;
-    reader.readAsBinaryString(file);
-  });
-}
-
-async function extractWord(file) {
-  return new Promise((resolve, reject) => {
-    if (typeof mammoth === 'undefined') {
-      reject(new Error('Word document library not loaded yet — please try again in a moment'));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async e => {
-      try {
-        const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
-        const content = result.value || '';
-        if (!content.trim()) {
-          resolve({ type:'text', content:'(Document appears to be empty or could not be read)', format:'Word document' });
-        } else {
-          resolve({ type:'text', content, format:'Word document' });
-        }
-      } catch(err) { reject(new Error('Could not read Word document: ' + err.message)); }
-    };
-    reader.onerror = () => reject(new Error('Could not read file'));
-    reader.readAsArrayBuffer(file);
-  });
-}
-
-async function extractPowerPoint(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        // Extract text from PPTX XML using SheetJS zip reader
-        const zip = XLSX.read(e.target.result, { type:'binary' });
-        let text = '';
-        Object.keys(zip.Sheets).forEach(name => {
-          if (name.match(/ppt\/slides\/slide\d+/)) {
-            const sheet = zip.Sheets[name];
-            const vals = XLSX.utils.sheet_to_json(sheet, { header:1, defval:'' });
-            vals.forEach(row => row.forEach(cell => { if (cell) text += cell + ' '; }));
-          }
-        });
-        // Fallback: scan all files for text nodes
-        if (!text.trim()) {
-          Object.keys(zip.files || {}).forEach(name => {
-            if (name.includes('slides/slide') && name.endsWith('.xml')) {
-              const content = zip.files[name].asText ? zip.files[name].asText() : '';
-              const matches = content.match(/<a:t[^>]*>([^<]+)<\/a:t>/g) || [];
-              matches.forEach(m => { text += m.replace(/<[^>]+>/g,'') + ' '; });
-            }
-          });
-        }
-        resolve({ type:'text', content: text.trim() || 'Could not extract text from PowerPoint', format:'PowerPoint presentation' });
-      } catch(err) { reject(err); }
-    };
-    reader.onerror = reject;
-    reader.readAsBinaryString(file);
-  });
-}
-
-async function extractAsBase64(file, ext) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const base64 = e.target.result.split(',')[1];
-      const mediaType = ext === 'pdf' ? 'application/pdf'
-        : ext === 'png' ? 'image/png'
-        : 'image/jpeg';
-      resolve({ type:'base64', base64, mediaType, format: ext.toUpperCase() });
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function clearImport() {
-  importedFileData = null;
-  importSuggestions = [];
-  document.getElementById('file-info-bar').classList.remove('show');
-  document.getElementById('drop-zone').classList.remove('has-file');
-  document.getElementById('analyse-btn').classList.remove('show');
-  document.getElementById('suggestions-panel').classList.remove('show');
-  document.getElementById('ai-status').classList.remove('show');
-  document.getElementById('file-input').value = '';
 }
 
 // ── AI Analysis ───────────────────────────────────────────────
@@ -3715,7 +3474,6 @@ function applyAllAccepted() {
 loadMap();
 renderGrids();
 renderTomsGrids();
-initImportPage();
 
 // Pre-fill Supabase UI fields and mark as connected
 (function() {
