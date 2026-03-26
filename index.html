@@ -2411,14 +2411,11 @@ const TOMS_SOURCES = {
     label:  'Dynamics 365 — Donations',
   },
   'NT29': {
-    type:        'dataverse',
-    entity:      'appointments',
-    filterField: 'craf2_activitytype',
-    filterValue: 'Volunteering',
-    fieldA:      'scheduleddurationminutes',
-    fieldB:      'craf2_attendeecount',
-    multiplySum: true,
-    label:       'Dynamics 365 — Volunteering',
+    type:   'dataverse',
+    entity: 'craf2_volunteeringsessions',
+    field:  'craf2_totalhours',
+    sumAll: true,
+    label:  'Dynamics 365 — Volunteering Hours',
   },
 
   // ── SUPABASE EXAMPLES ──
